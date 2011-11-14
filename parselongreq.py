@@ -74,7 +74,7 @@ class LongRequestStatistics(object):
             else:
                 request = self.requests[req_id]
             snapshot = Snapshot(self.precision)
-            snapshot.time = data['time']
+            snapshot.time = float(data['time'])
             request.snapshots.append(snapshot)
 
     def report_requests(self):
