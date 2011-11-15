@@ -9,6 +9,10 @@ RE_SNIPPETS = {'iso-date': r'\d{4}-\d{2}-\d{2}',
                'iso-time': r'\d{2}:\d{2}:\d{2},\d{3}',
                'seconds': r'\d+\.\d+'}
 
+def parse_date(str):
+    return datetime.datetime.strptime(str, '%Y-%m-%d %H:%M:%S')
+
+
 class Snapshot(object):
 
     # Time in request in seconds
@@ -50,10 +54,13 @@ class LongRequestStatistics(object):
         r'%(iso-date)s %(iso-time)s - Thread (?P<thread>\d+): Started on (?P<started>%(seconds)s); '
         r'Running for (?P<time>%(seconds)s) secs; request: (?P<request>.*)' % RE_SNIPPETS)
 
-    def __init__(self, limit=10, precision=7):
+    def __init__(self, limit=10, precision=7,
+                 start=datetime.datetime.min, end=datetime.datetime.max):
         self.limit = limit
         self.precision = precision
         self.requests = {}
+        self.start = start
+        self.end = end
 
     def parse(self, log):
         request = None
@@ -69,6 +76,8 @@ class LongRequestStatistics(object):
                 request = Request(req_id)
                 request.thread = data['thread']
                 request.started = datetime.datetime.fromtimestamp(float(data['started']))
+                if not self.start <= request.started <= self.end:
+                    continue
                 request.request = data['request']
                 self.requests[req_id] = request
             else:
@@ -125,13 +134,20 @@ def main():
         '--precision', default=7, type=int,
         help='Number of lines to use for fingerprinting tracebacks.')
     parser.add_argument(
+        '--start', default=datetime.datetime.min, type=parse_date,
+        help='earliest record to include')
+    parser.add_argument(
+        '--end', default=datetime.datetime.max, type=parse_date,
+        help='latest record to include')
+    parser.add_argument(
         'inputfile', type=argparse.FileType('r'),
         help='The log file that will be parsed.')
     args = parser.parse_args()
-
     stats = LongRequestStatistics(
         limit=args.limit,
-        precision=args.precision)
+        precision=args.precision,
+        start=args.start,
+        end=args.end)
     stats.parse(args.inputfile)
     getattr(stats, 'report_%s' % args.subject)()
 
