@@ -9,6 +9,7 @@ RE_SNIPPETS = {'iso-date': r'\d{4}-\d{2}-\d{2}',
                'iso-time': r'\d{2}:\d{2}:\d{2},\d{3}',
                'seconds': r'\d+\.\d+'}
 
+
 def parse_date(str):
     return datetime.datetime.strptime(str, '%Y-%m-%d %H:%M:%S')
 
@@ -76,7 +77,8 @@ class LongRequestStatistics(object):
                 request = Request(req_id)
                 request.thread = data['thread']
                 request.started = datetime.datetime.fromtimestamp(float(data['started']))
-                if not self.start <= request.started <= self.end:
+                if not self.start <= request.started < self.end:
+                    request = None
                     continue
                 request.request = data['request']
                 self.requests[req_id] = request
