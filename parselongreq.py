@@ -52,7 +52,7 @@ class Request(object):
 class LongRequestStatistics(object):
 
     header = re.compile(
-        r'%(iso-date)s %(iso-time)s - Thread (?P<thread>\d+): Started on (?P<started>%(seconds)s); '
+        r'%(iso-date)s %(iso-time)s - Thread (?P<thread>-?\d+): Started on (?P<started>%(seconds)s); '
         r'Running for (?P<time>%(seconds)s) secs; request: (?P<request>.*)' % RE_SNIPPETS)
 
     def __init__(self, limit=10, precision=7,
