@@ -56,12 +56,13 @@ class LongRequestStatistics(object):
         r'Running for (?P<time>%(seconds)s) secs; request: (?P<request>.*)' % RE_SNIPPETS)
 
     def __init__(self, limit=10, precision=7,
-                 start=datetime.datetime.min, end=datetime.datetime.max):
+                 start=datetime.datetime.min, end=datetime.datetime.max, url='.*'):
         self.limit = limit
         self.precision = precision
         self.requests = {}
         self.start = start
         self.end = end
+        self.url = re.compile(url)
 
     def parse(self, log):
         request = None
@@ -72,6 +73,8 @@ class LongRequestStatistics(object):
                     request.snapshots[-1].info.append(line)
                 continue
             data = match.groupdict()
+            if not self.url.search(data['request']):
+                continue
             req_id = (data['started'], data['thread'])
             if req_id not in self.requests:
                 request = Request(req_id)
@@ -142,6 +145,9 @@ def main():
         '--end', default=datetime.datetime.max, type=parse_date,
         help='latest record to include')
     parser.add_argument(
+        '--url', default='.*',
+        help='URLs (regexp) to include')
+    parser.add_argument(
         'inputfile', type=argparse.FileType('r'),
         help='The log file that will be parsed.')
     args = parser.parse_args()
@@ -149,7 +155,8 @@ def main():
         limit=args.limit,
         precision=args.precision,
         start=args.start,
-        end=args.end)
+        end=args.end,
+        url=args.url)
     stats.parse(args.inputfile)
     getattr(stats, 'report_%s' % args.subject)()
 
