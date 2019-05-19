@@ -95,17 +95,17 @@ class LongRequestStatistics(object):
         # Output 1: list all snapshots, aggregate by request
         requests_by_duration = sorted(self.requests.values(), key=lambda x:x.duration)
         requests_by_duration = reversed(requests_by_duration)
-        print "=== Top %s long running requests ===" % self.limit
+        print("=== Top {} long running requests ===".format(self.limit))
         for request in list(requests_by_duration)[:self.limit]:
-            print request.started.strftime('%Y-%m-%d %H:%M:%S'), request.snapshots[-1].time, request.request
+            print(request.started.strftime('%Y-%m-%d %H:%M:%S'), request.snapshots[-1].time, request.request)
             for snapshot in request.snapshots:
-                print "  %s" % snapshot.time, snapshot.id()
-                print snapshot.fingerprint()
-                print
+                print("  {}".format(snapshot.time, snapshot.id()))
+                print(snapshot.fingerprint())
+                print()
 
     def report_snapshots(self):
         # Output 2: Give statistics about each fingerprint we found
-        print "=== Top %s snapshots ===" % self.limit
+        print("=== Top {} snapshots ===".format(self.limit))
         snapshots = {}
         for request in self.requests.values():
             for snapshot in request.snapshots:
@@ -117,12 +117,12 @@ class LongRequestStatistics(object):
         total_snapshots = sum(len(s) for s in snapshots.values())
         topten_count = sum(len(snapshots[s]) for s in topten_snapshots)
 
-        print "%s out of %s" % (topten_count, total_snapshots)
+        print("{} out of {}".format(topten_count, total_snapshots))
 
         for hash in topten_snapshots:
-            print "%s - found %s times" % (hash , len(snapshots[hash]))
-            print snapshots[hash][0].fingerprint()
-            print
+            print("{} - found {} times".format(hash , len(snapshots[hash])))
+            print(snapshots[hash][0].fingerprint())
+            print()
 
 
 
